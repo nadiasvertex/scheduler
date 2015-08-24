@@ -63,6 +63,59 @@ class Periodic:
             # and bump it to its next valid size or wrap.
             potential[wrap_i] = min(r)
 
+    @staticmethod
+    def _parse_range_component(r, default):
+        if "," in r:
+            return Periodic._parse_range(r.split(","), default)
+
+        major = r.split("/")
+        interval = int(major[1]) if len(major) == 2 else 1
+
+        minor = major[0].strip()
+        if minor.startswith("-"):
+            return range(min(default), int(minor[1:]) + 1, interval)
+        elif minor.endswith("-"):
+            return range(int(minor[0:-1]), max(default) + 1, interval)
+        elif "-" in minor:
+            minor = minor.split("-")
+            return range(int(minor[0]), int(minor[1]) + 1, interval)
+        elif interval > 1:
+            return range(min(default), max(default) + 1, interval)
+        else:
+            return [int(minor)]
+
+    @staticmethod
+    def _parse_range(r, default):
+        if type(r) is int:
+            return [r]
+
+        if type(r) is str:
+            return Periodic._parse_range_component(r, default)
+
+        # Expand the list items so that any mix of integers and strings yields the largest
+        # intersection of possible values.
+        if type(r) is list:
+            o = set()
+            for item in r:
+                ti = type(item)
+                if ti is int:
+                    o.add(item)
+                elif ti is str:
+                    for n in Periodic._parse_range(item, default):
+                        o.add(n)
+
+            return sorted(o)
+
+    @staticmethod
+    def from_json(v):
+        return Periodic(
+            Periodic._parse_range(v.get("minute"), range(0, 60)),
+            Periodic._parse_range(v.get("hour"), range(0, 24)),
+            Periodic._parse_range(v.get("day_of_week"), range(0, 7)),
+            Periodic._parse_range(v.get("day_of_month"), range(1, 32)),
+            Periodic._parse_range(v.get("month"), range(1, 13))
+        )
+
     def get_next_deadline(self, now=datetime.now()):
         """
         Finds the next absolute point in time when it is valid to schedule this item. Note that this

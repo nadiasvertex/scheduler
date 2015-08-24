@@ -1,5 +1,5 @@
 import unittest
-from job.rule.availability import Available
+from job.rule.availability import Replicate
 from job.rule.limit import Quota
 from plan.accounting import JobEntry
 
@@ -14,7 +14,7 @@ class TestAvailability(unittest.TestCase):
         ]
 
     def test_one_satisifed(self):
-        r = Available("dev-publisher", 1)
+        r = Replicate("dev-publisher", 1)
         pending_job = self.running_jobs[0]
 
         self.assertFalse(r.can_run(pending_job, self.running_jobs))
@@ -22,7 +22,7 @@ class TestAvailability(unittest.TestCase):
         self.assertTrue(r.satisfied(self.running_jobs))
 
     def test_two_unsatisfied(self):
-        r = Available("dev-publisher", 2)
+        r = Replicate("dev-publisher", 2)
         pending_job = self.running_jobs[0]
 
         self.assertTrue(r.can_run(pending_job, self.running_jobs))
@@ -34,7 +34,7 @@ class TestAvailability(unittest.TestCase):
         self.assertTrue(r.satisfied(self.running_jobs))
 
     def test_two_satisfied(self):
-        r = Available("stb-publisher", 2)
+        r = Replicate("stb-publisher", 2)
         pending_job = self.running_jobs[1]
 
         self.assertFalse(r.can_run(pending_job, self.running_jobs))

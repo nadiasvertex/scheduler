@@ -1,7 +1,7 @@
 __author__ = 'Christopher Nelson'
 
 
-class Available:
+class Replicate:
     def __init__(self, name, required_concurrent):
         """
         Creates a new rule that requires a job to run on multiple nodes. The rule requires
